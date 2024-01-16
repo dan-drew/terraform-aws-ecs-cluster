@@ -1,0 +1,62 @@
+#cloud-config
+packages:
+  - awslogs
+  - nfs-utils
+
+write_files:
+  - path: /etc/ecs/ecs.config
+    content: |
+      ECS_CLUSTER=${cluster_name}
+      ECS_LOGFILE=/var/log/ecs-agent.log
+      ECS_UPDATES_ENABLED=true
+      ECS_UPDATE_DOWNLOAD_DIR=/cache
+      ECS_AVAILABLE_LOGGING_DRIVERS=["awslogs","fluentd","json-file","none"]
+      ECS_ENABLE_TASK_IAM_ROLE=true
+
+  - path: /etc/awslogs/awslogs.conf
+    content: |
+      [general]
+      state_file = /var/lib/awslogs/agent-state
+
+      [/var/log/dmesg]
+      file = /var/log/dmesg
+      log_stream_name = /var/log/dmesg
+      log_group_name = /ecs/cluster/${cluster_name}
+
+      [/var/log/messages]
+      file = /var/log/messages
+      log_stream_name = /var/log/messages
+      log_group_name = /ecs/cluster/${cluster_name}
+      datetime_format = %b %d %H:%M:%S
+
+      [/var/log/docker]
+      file = /var/log/docker
+      log_stream_name = /var/log/docker
+      log_group_name = /ecs/cluster/${cluster_name}
+      datetime_format = %Y-%m-%dT%H:%M:%S.%f
+
+      [/var/log/ecs/ecs-init.log]
+      file = /var/log/ecs/ecs-init.log
+      log_stream_name = /var/log/ecs/ecs-init.log
+      log_group_name = /ecs/cluster/${cluster_name}
+      datetime_format = %Y-%m-%dT%H:%M:%SZ
+
+      [/var/log/ecs/ecs-agent.log]
+      file = /var/log/ecs/ecs-agent.log.*
+      log_stream_name = /var/log/ecs/ecs-agent.log
+      log_group_name = /ecs/cluster/${cluster_name}
+      datetime_format = %Y-%m-%dT%H:%M:%SZ
+
+      [/var/log/ecs/audit.log]
+      file = /var/log/ecs/audit.log.*
+      log_stream_name = /var/log/ecs/audit.log
+      log_group_name = /ecs/cluster/${cluster_name}
+      datetime_format = %Y-%m-%dT%H:%M:%SZ
+
+users: %{ for user in users ~}
+  - name: ${user.name}
+    sudo: [ "ALL=(ALL) NOPASSWD:ALL" ]
+    shell: /bin/bash
+    ssh-authorized-keys:
+    - ${user.ssh}
+%{ endfor ~}
