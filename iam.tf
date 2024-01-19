@@ -1,10 +1,10 @@
 module "ecs_host_assume_role" {
-  source = "github.com/dan-drew/terraform-aws-assume-role-policy"
+  source = "github.com/tfext/terraform-aws-assume-role-policy"
   type   = "ecs_host"
 }
 
 module "autoscaling_assume_role" {
-  source = "github.com/dan-drew/terraform-aws-assume-role-policy"
+  source = "github.com/tfext/terraform-aws-assume-role-policy"
   type   = "appautoscaling"
 }
 
